@@ -32,8 +32,9 @@ local function gen_config_h(build, libs)
     return dest_include_dir
 end
 
-return function(build, compiler)
-    compiler = compiler or require('configure.lang.cxx.compiler').find{
+return function(build, args)
+    args = args or {}
+    local compiler = args.compiler or require('configure.lang.cxx.compiler').find{
         build = build,
     }
 
@@ -49,13 +50,18 @@ return function(build, compiler)
     local lib_names = {'alsa',}-- 'pulseaudio', 'jack', 'coreaudio', 'wasapi'}
     local libs = {}
     for _, name in ipairs(lib_names) do
-        local lib, err = try(
-            require('configure.modules')[name].find,
-            {
-                build = build,
-                compiler = compiler,
-            }
-        )
+        local lib = nil
+        if args[name] ~= nil then
+            lib = args[name]
+        else
+            lib, err = try(
+                require('configure.modules')[name].find,
+                {
+                    build = build,
+                    compiler = compiler,
+                }
+            )
+        end
         if lib ~= nil then
             table.append(libs, lib)
             table.append(sources, 'src/' .. name .. '.c')
