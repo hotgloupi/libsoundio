@@ -17,12 +17,15 @@ local function gen_config_h(build, libs)
         str = str .. "# define SOUNDIO_HAVE_" .. lib.name:upper() .. '\n'
     end
     str = str .. '#endif\n'
-    local path = tostring(dest_include_dir / "config.h")
-    local config_h = assert(io.open(path, 'r'))
-    local old = config_h:read("*all")
-    config_h:close()
+    local path = dest_include_dir / "config.h"
+    local old = nil
+    if path:exists() then
+        local config_h = assert(io.open(tostring(path), 'r'))
+        old = config_h:read("*all")
+        config_h:close()
+    end
     if str ~= old then
-        local config_h = assert(io.open(path, 'w'))
+        local config_h = assert(io.open(tostring(path), 'w'))
         config_h:write(str)
         config_h:close()
     end
