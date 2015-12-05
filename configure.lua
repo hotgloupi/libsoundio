@@ -51,6 +51,7 @@ return function(build, args)
     local libs = {}
     for _, name in ipairs(lib_names) do
         local lib = nil
+        local err = nil
         if args[name] ~= nil then
             lib = args[name]
         else
