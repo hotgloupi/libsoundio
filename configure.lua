@@ -47,28 +47,42 @@ return function(build, args)
         "src/ring_buffer.c",
     }
 
-    local lib_names = {'alsa',}-- 'pulseaudio', 'jack', 'coreaudio', 'wasapi'}
     local libs = {}
-    for _, name in ipairs(lib_names) do
-        local lib = nil
-        local err = nil
-        if args[name] ~= nil then
-            lib = args[name]
-        else
-            lib, err = try(
-                require('configure.modules')[name].find,
-                {
-                    build = build,
-                    compiler = compiler,
-                }
-            )
+
+    if build:target():is_linux() then
+        local lib_names = {'alsa',}-- 'pulseaudio', 'jack'}
+        for _, name in ipairs(lib_names) do
+            local lib = nil
+            local err = nil
+            if args[name] ~= nil then
+                lib = args[name]
+            else
+                lib, err = try(
+                    require('configure.modules')[name].find,
+                    {
+                        build = build,
+                        compiler = compiler,
+                    }
+                )
+            end
+            if lib ~= nil then
+                table.append(libs, lib)
+                table.append(sources, 'src/' .. name .. '.c')
+            else
+                print(err)
+            end
         end
-        if lib ~= nil then
-            table.append(libs, lib)
-            table.append(sources, 'src/' .. name .. '.c')
-        else
-            print(err)
-        end
+    elseif build:host():is_osx() then
+        table.extend(libs, {
+            compiler:find_system_library('CoreAudio'),
+            compiler:find_system_library('AudioUnit'),
+        })
+        table.append(sources, { 'src/coreaudio.c' })
+    elseif build:target():is_windows() then
+        table.extend(libs {
+            compiler:find_system_library('wasapi'),
+        })
+        table.append(sources, { 'src/wasapi.c' })
     end
 
     local dir = gen_config_h(build, libs)
