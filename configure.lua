@@ -77,12 +77,17 @@ return function(build, args)
             compiler:find_system_library('CoreAudio'),
             compiler:find_system_library('AudioUnit'),
         })
-        table.append(sources, { 'src/coreaudio.c' })
+        table.append(sources, 'src/coreaudio.c')
     elseif build:target():is_windows() then
-        table.extend(libs {
-            compiler:find_system_library('wasapi'),
+        table.extend(libs, {
+            compiler.Library:new{
+                name = 'wasapi',
+                kind = 'shared',
+                files = {},
+            },
+            compiler:find_system_library_from_filename('Ole32.lib', 'shared'),
         })
-        table.append(sources, { 'src/wasapi.c' })
+        table.append(sources, 'src/wasapi.c')
     end
 
     local dir = gen_config_h(build, libs)
@@ -111,6 +116,10 @@ return function(build, args)
         libraries = libs,
         defines = {
             {'_POSIX_C_SOURCE', '200809L'},
+            {'SOUNDIO_STATIC_LIBRARY', 1},
+        },
+        public_defines = {
+            {'SOUNDIO_STATIC_LIBRARY', 1},
         }
     }
 end
