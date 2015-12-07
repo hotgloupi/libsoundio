@@ -74,8 +74,8 @@ return function(build, args)
         end
     elseif build:host():is_osx() then
         table.extend(libs, {
-            compiler:find_system_library_from_filename('CoreAudio'),
-            compiler:find_system_library_from_filename('AudioUnit'),
+            compiler:find_system_library_from_filename('CoreAudio', 'shared'),
+            compiler:find_system_library_from_filename('AudioUnit', 'shared'),
         })
         table.append(sources, 'src/coreaudio.c')
     elseif build:target():is_windows() then
